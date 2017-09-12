@@ -54,8 +54,8 @@ int main(int argc, char *argv[]) {
 	double *p = seriesGen(10000, 16807, 2147483647);
 	double* startPointTemp = p;
 	//for the problem 4:
-	double rs[100001] = { 0 };
-	int rsCount = 1;
+	double* rvs= new double[100001]();
+	double* rs = rvs;
 	int rGenCount[11] = { 0 };
 	for (double j = 1; j <= 10; j++)
 	{
@@ -64,8 +64,8 @@ int main(int argc, char *argv[]) {
 		for (int i = 1; i <= 10000; i++)
 		{	
 			double k = *startPointTemp / 2147483647;
-			rs[rsCount] = k;
-			rsCount++;
+			*rs=k;
+			rs++;
 			if (k >= lowerBound && k <= upperBound)
 			{
 				rGenCount[(int)j]++;
@@ -75,37 +75,41 @@ int main(int argc, char *argv[]) {
 		//reset the pointer to the beginning of the series
 		startPointTemp = p;
 	}
+	rs = rvs;
 	for (double i = 1; i <= 10; i++)
 	{
 		double lowerBound = (i - 1) / 10;
 		double upperBound = (i / 10);
-		cout << "the counts for Rn of the interval ["<< lowerBound<<", "<<upperBound<<"] is: " << rGenCount[(int)i]<<"\n";
+		std::cout << "the counts for Rn of the interval ["<< lowerBound<<", "<<upperBound<<"] is: " << rGenCount[(int)i]<<"\n";
 	}
 	double average=mean(p,10000);
-	cout.setf(ios::fixed);
-	cout << "average= " <<setprecision(2)<< average << "\n";
-	cout << "variance= "<<variance(p, 10000, average)<<"\n";
-	cout << "----------------------------------" << "\n";
+	std::cout.setf(ios::fixed);
+	std::cout << "average= " <<setprecision(2)<< average << "\n";
+	std::cout << "variance= "<<variance(p, 10000, average)<<"\n";
+	std::cout << "----------------------------------" << "\n";
 	double lambda = 2;
 	double expNumbers[10001] = { 0 };
 	for (int i = 1; i <= 10000; i++)
 	{
-		expNumbers[i] = expRv(rs[i], lambda);
+		expNumbers[i] = expRv(*rs, lambda);
+		rs++;
 	}
 	double expMean = mean(&expNumbers[1], 10000);
 	double expVariance = variance(&expNumbers[1], 10000, expMean);
-	cout << "The calculated mean of exponential r.v.s= " << expMean << "\n";
-	cout << "The calculated Variance of exponential r.v.s=" << expVariance << "\n";
-	cout << "The Theoretical mean of exponential r.v.s= "<<1/lambda<<"\n";
-	cout << "The Theoretical variance of exponential r.v.s= "<<1/lambda/lambda<<"\n";
-	cout << "----------------------------------" << "\n";
+	std::cout << "The calculated mean of exponential r.v.s= " << expMean << "\n";
+	std::cout << "The calculated Variance of exponential r.v.s=" << expVariance << "\n";
+	std::cout << "The Theoretical mean of exponential r.v.s= "<<1/lambda<<"\n";
+	std::cout << "The Theoretical variance of exponential r.v.s= "<<1/lambda/lambda<<"\n";
+	std::cout << "----------------------------------" << "\n";
 	
-	int bits[100001] = { 0 };
+
+
+	bool bits[100001] = { false };
 	bool correctness[100001] = { false };
-	
+	rs = rvs;
 	for (int i = 1; i <= 100000; i++)
 	{
-		if (rs[i] > 0.45)
+		if (*rs> 0.45)
 		{
 			bits[i] = 1;
 		}
@@ -115,7 +119,7 @@ int main(int argc, char *argv[]) {
 		}
 		if (bits[i] == 1)
 		{
-			if (rs[i] > 0.95)
+			if (*rs > 0.95)
 			{
 				correctness[i] = false;
 			}
@@ -126,7 +130,7 @@ int main(int argc, char *argv[]) {
 		}
 		else
 		{
-			if (rs[i] > 0.85)
+			if (*rs > 0.85)
 			{
 				correctness[i] = false;
 			}
@@ -135,6 +139,9 @@ int main(int argc, char *argv[]) {
 				correctness[i] = true;
 			}
 		}
+		//debug
+		//cout << "bits["<<i<<"]= " << bits[i] << ", correctness[i]= " << correctness[i]<<"\n";
+		rs++;
 	}
 	
 	
@@ -146,7 +153,7 @@ int main(int argc, char *argv[]) {
 	for (int j = 1; j <= 100000; j++)
 	{
 		//the current bit is 0
-		if (bits[j] = 0)
+		if (bits[j] == 0)
 		{
 			zeroRatio++;
 			if (correctness[j] == true)
@@ -163,13 +170,22 @@ int main(int argc, char *argv[]) {
 				oneCorrect++;
 			}
 		}
+		//debug
+		//cout << "j=" << j << ", and bits[j]=" << bits[j] << ", and zeroRatio=" << zeroRatio << ", zeroCorrect=" << zeroCorrect << " ,oneRatio= " << oneRatio << ", oneCorrect=" << oneCorrect << "\n";
 	}
 	zeroCorrect /= zeroRatio;
 	zeroRatio /= 100000;
 	oneCorrect /= oneRatio;
 	oneRatio /= 100000;
-	cout << "The prob that a 0 is received is: " << oneRatio << "\n";
-	cout << "The prob that a 1 was transmitted given that a 1 was received is: " << oneRatio*oneCorrect/(zeroRatio*(1-zeroCorrect)+ oneRatio*oneCorrect)<<"\n";
-	cout << "The prob of an error is: " << zeroRatio*(1 - zeroCorrect) + oneRatio*(1 - oneCorrect) << "\n";
+	cout.precision(2);
+	//debug
+	std::cout << "zeroRatio=" << zeroRatio << "\n";
+	std::cout << "zeroCorrect=" << zeroCorrect << "\n";
+	std::cout << "oneRatio=" << oneRatio << "\n";
+	std::cout << "oneCorrect=" << oneCorrect << "\n";
+
+	std::cout << "The prob that a 0 is received is: " << oneRatio << "\n";
+	std::cout << "The prob that a 1 was transmitted given that a 1 was received is: " << (oneRatio*oneCorrect)/(zeroRatio*(1-zeroCorrect)+ oneRatio*oneCorrect)<<"\n";
+	std::cout << "The prob of an error is: " << zeroRatio*(1 - zeroCorrect) + oneRatio*(1 - oneCorrect) << "\n";
 	
 }
